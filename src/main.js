@@ -1,4 +1,5 @@
 import "./style.css";
+import { getWordData } from "./dictionaryApi.js";
 
 const app = document.querySelector("#app");
 
@@ -134,35 +135,82 @@ app.innerHTML = `
   </main>
 
   <footer class="site-footer">
-    <p>
-      Level Up Vocabulary Lab - Learn, practice, and grow.
-    </p>
-  </footer>
+  <p>
+    Level Up Vocabulary Lab - Learn, practice, and grow.
+  </p>
+
+  <p class="api-credit">
+    Dictionary data provided by
+    <a
+      href="https://dictionaryapi.dev/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Free Dictionary API
+    </a>.
+  </p>
+</footer>
 `;
 
 const searchForm = document.querySelector("#search-form");
 const resultsSection = document.querySelector("#results");
 
-searchForm.addEventListener("submit", (event) => {
+searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(searchForm);
-  const word = formData.get("word").trim();
+  const word = String(formData.get("word") ?? "");
 
   resultsSection.innerHTML = `
     <div class="empty-result">
-      <span class="result-icon" aria-hidden="true">Aa</span>
+      <span class="result-icon" aria-hidden="true">...</span>
 
       <div>
-        <h2 id="results-title"></h2>
+        <h2 id="results-title">Searching...</h2>
 
         <p>
-          The dictionary API will display the information for this word
-          in the next project step.
+          Connecting to the dictionary service.
         </p>
       </div>
     </div>
   `;
 
-  document.querySelector("#results-title").textContent = word;
+  try {
+    const data = await getWordData(word);
+    const entry = data[0];
+
+    resultsSection.innerHTML = `
+      <div class="empty-result">
+        <span class="result-icon" aria-hidden="true">Aa</span>
+
+        <div>
+          <h2 id="results-title"></h2>
+
+          <p>
+            Dictionary information was received successfully.
+          </p>
+        </div>
+      </div>
+    `;
+
+    document.querySelector("#results-title").textContent = entry.word;
+
+    console.log("Dictionary API response:", data);
+  } catch (error) {
+    console.error("Dictionary API error:", error);
+
+    resultsSection.innerHTML = `
+      <div class="empty-result">
+        <span class="result-icon" aria-hidden="true">!</span>
+
+        <div>
+          <h2 id="results-title">Search unavailable</h2>
+
+          <p>
+            The dictionary information could not be loaded.
+          </p>
+        </div>
+      </div>
+    `;
+  }
 });
