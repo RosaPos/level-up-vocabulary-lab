@@ -1,4 +1,5 @@
 import "./style.css";
+import { getWordData } from "./dictionaryApi.js";
 
 const app = document.querySelector("#app");
 
@@ -40,7 +41,7 @@ app.innerHTML = `
               id="word-input"
               name="word"
               type="search"
-              placeholder="Example: improve"
+              placeholder="Example: level up"
               autocomplete="off"
               required
             />
@@ -49,7 +50,7 @@ app.innerHTML = `
           </div>
 
           <p class="form-help">
-            Start with a word such as learn, improve, happy, or practice.
+            Start with a word or phrase such as level up, happy, good, or practice.
           </p>
         </form>
       </div>
@@ -134,35 +135,213 @@ app.innerHTML = `
   </main>
 
   <footer class="site-footer">
-    <p>
-      Level Up Vocabulary Lab - Learn, practice, and grow.
-    </p>
-  </footer>
+  <p>
+    Level Up Vocabulary Lab - Learn, practice, and grow.
+  </p>
+
+  <p class="api-credit">
+    Dictionary data provided by
+    <a
+      href="https://dictionaryapi.dev/"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Free Dictionary API
+    </a>.
+  </p>
+</footer>
 `;
 
 const searchForm = document.querySelector("#search-form");
 const resultsSection = document.querySelector("#results");
 
-searchForm.addEventListener("submit", (event) => {
+searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  function extractWordInfo(entry) {
+    const firstMeaning = entry.meanings?.[0];
+    const firstDefinition = firstMeaning?.definitions?.[0];
+
+    const phonetic =
+      entry.phonetic ||
+      entry.phonetics?.find((item) => item.text)?.text ||
+      "Pronunciation not available";
+
+    const audio =
+      entry.phonetics?.find((item) => item.audio)?.audio || "";
+
+    const synonyms = [
+      ...new Set(
+        entry.meanings?.flatMap((meaning) => meaning.synonyms ?? []) ?? [],
+      ),
+    ].slice(0, 5);
+
+    const antonyms = [
+      ...new Set(
+        entry.meanings?.flatMap((meaning) => meaning.antonyms ?? []) ?? [],
+      ),
+    ].slice(0, 5);
+
+    return {
+      word: entry.word || "Unknown word",
+      phonetic,
+      audio,
+      partOfSpeech:
+        firstMeaning?.partOfSpeech || "Part of speech not available",
+      definition:
+        firstDefinition?.definition || "Definition not available",
+      example:
+        firstDefinition?.example || "Example not available",
+      synonyms,
+      antonyms,
+    };
+  }
+
   const formData = new FormData(searchForm);
-  const word = formData.get("word").trim();
+  const word = String(formData.get("word") ?? "");
 
   resultsSection.innerHTML = `
     <div class="empty-result">
-      <span class="result-icon" aria-hidden="true">Aa</span>
+      <span class="result-icon" aria-hidden="true">...</span>
 
       <div>
-        <h2 id="results-title"></h2>
+        <h2 id="results-title">Searching...</h2>
 
         <p>
-          The dictionary API will display the information for this word
-          in the next project step.
+          Connecting to the dictionary service.
         </p>
       </div>
     </div>
   `;
 
-  document.querySelector("#results-title").textContent = word;
+  try {
+    const data = await getWordData(word);
+    const entry = data[0];
+    const wordInfo = extractWordInfo(entry);
+
+    resultsSection.innerHTML = `
+    <article class="word-result">
+      <div class="word-result-header">
+        <div>
+          <p class="eyebrow">Dictionary result</p>
+          <h2 id="results-title"></h2>
+          <p id="result-phonetic"></p>
+        </div>
+
+        <div class="word-result-meta">
+          <span id="result-part-of-speech"></span>
+
+          <button
+            class="audio-button"
+            id="play-audio-button"
+            type="button"
+          >
+            Listen
+          </button>
+        </div>
+      </div>
+
+      <div class="word-result-body">
+        <h3>Definition</h3>
+        <p id="result-definition"></p>
+
+        <h3>Example</h3>
+        <p id="result-example"></p>
+
+        <div class="word-result-details">
+          <section class="word-detail-card">
+            <h3>Synonyms</h3>
+            <p id="result-synonyms"></p>
+          </section>
+
+          <section class="word-detail-card">
+            <h3>Antonyms</h3>
+            <p id="result-antonyms"></p>
+          </section>
+        </div>
+      </div>
+    </article>
+  `;
+
+    document.querySelector("#results-title").textContent =
+      wordInfo.word;
+
+    document.querySelector("#result-phonetic").textContent =
+      wordInfo.phonetic;
+
+    document.querySelector("#result-part-of-speech").textContent =
+      wordInfo.partOfSpeech;
+
+    document.querySelector("#result-definition").textContent =
+      wordInfo.definition;
+
+    document.querySelector("#result-example").textContent =
+      wordInfo.example;
+
+    document.querySelector("#result-synonyms").textContent =
+      wordInfo.synonyms.length > 0
+        ? wordInfo.synonyms.join(", ")
+        : "Synonyms not available";
+
+    document.querySelector("#result-antonyms").textContent =
+      wordInfo.antonyms.length > 0
+        ? wordInfo.antonyms.join(", ")
+        : "Antonyms not available";
+
+    const audioButton =
+      document.querySelector("#play-audio-button");
+
+    if (wordInfo.audio) {
+      audioButton.addEventListener("click", async () => {
+        const audioUrl = wordInfo.audio.startsWith("//")
+          ? `https:${wordInfo.audio}`
+          : wordInfo.audio;
+
+        const pronunciation = new Audio(audioUrl);
+
+        audioButton.disabled = true;
+        audioButton.textContent = "Loading...";
+
+        try {
+          await pronunciation.play();
+
+          audioButton.textContent = "Playing";
+
+          pronunciation.addEventListener(
+            "ended",
+            () => {
+              audioButton.disabled = false;
+              audioButton.textContent = "Listen";
+            },
+            { once: true },
+          );
+        } catch (audioError) {
+          console.warn("Audio unavailable:", audioError);
+
+          audioButton.textContent = "Audio unavailable";
+        }
+      });
+    } else {
+      audioButton.disabled = true;
+      audioButton.textContent = "Audio unavailable";
+    }
+
+    console.log("Dictionary API response:", data);
+  } catch (error) {
+    console.error("Dictionary API error:", error);
+
+    resultsSection.innerHTML = `
+      <div class="empty-result">
+        <span class="result-icon" aria-hidden="true">!</span>
+
+        <div>
+          <h2 id="results-title">Search unavailable</h2>
+
+          <p>
+            The dictionary information could not be loaded.
+          </p>
+        </div>
+      </div>
+    `;
+  }
 });
