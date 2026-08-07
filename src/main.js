@@ -1,5 +1,6 @@
 import "./style.css";
 import { getWordData } from "./dictionaryApi.js";
+import { getRelatedWords } from "./datamuseApi.js";
 
 const app = document.querySelector("#app");
 
@@ -219,6 +220,22 @@ searchForm.addEventListener("submit", async (event) => {
     const entry = data[0];
     const wordInfo = extractWordInfo(entry);
 
+    let relatedWords = [];
+
+    try {
+      const relatedData = await getRelatedWords(word);
+
+      relatedWords = relatedData
+        .map((item) => item.word)
+        .filter(
+          (relatedWord) =>
+            relatedWord.toLowerCase() !== wordInfo.word.toLowerCase(),
+        )
+        .slice(0, 8);
+    } catch (datamuseError) {
+      console.warn("Datamuse API error:", datamuseError);
+    }
+
     resultsSection.innerHTML = `
     <article class="word-result">
       <div class="word-result-header">
@@ -258,6 +275,11 @@ searchForm.addEventListener("submit", async (event) => {
             <h3>Antonyms</h3>
             <p id="result-antonyms"></p>
           </section>
+
+          <section class="word-detail-card related-words-card">
+            <h3>Related Words</h3>
+            <p id="result-related-words"></p>
+          </section>
         </div>
       </div>
     </article>
@@ -287,6 +309,11 @@ searchForm.addEventListener("submit", async (event) => {
       wordInfo.antonyms.length > 0
         ? wordInfo.antonyms.join(", ")
         : "Antonyms not available";
+
+    document.querySelector("#result-related-words").textContent =
+      relatedWords.length > 0
+        ? relatedWords.join(", ")
+        : "Related words not available";
 
     const audioButton =
       document.querySelector("#play-audio-button");
@@ -327,6 +354,7 @@ searchForm.addEventListener("submit", async (event) => {
     }
 
     console.log("Dictionary API response:", data);
+    console.log("Datamuse related words:", relatedWords);
   } catch (error) {
     console.error("Dictionary API error:", error);
 
