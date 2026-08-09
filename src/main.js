@@ -1,6 +1,12 @@
 import "./style.css";
 import { getWordData } from "./dictionaryApi.js";
 import { getRelatedWords } from "./datamuseApi.js";
+import {
+  getSavedWords,
+  saveWord,
+  removeSavedWord,
+  isWordSaved,
+} from "./savedWordsStorage.js";
 
 const app = document.querySelector("#app");
 
@@ -131,8 +137,11 @@ app.innerHTML = `
         </p>
       </div>
 
-      <span class="saved-count">0 words saved</span>
+      <span class="saved-count" id="saved-count">0 words saved</span>
     </section>
+
+    <div  class="saved-words-list"  id="saved-words-list"  aria-live="polite">
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -155,6 +164,72 @@ app.innerHTML = `
 
 const searchForm = document.querySelector("#search-form");
 const resultsSection = document.querySelector("#results");
+
+const savedCount = document.querySelector("#saved-count");
+const savedWordsList = document.querySelector("#saved-words-list");
+
+function renderSavedWords() {
+  const savedWords = getSavedWords();
+
+  savedCount.textContent =
+    `${savedWords.length} ${savedWords.length === 1 ? "word" : "words"} saved`;
+
+  savedWordsList.innerHTML = "";
+
+  if (savedWords.length === 0) {
+    const emptyMessage = document.createElement("p");
+
+    emptyMessage.className = "saved-empty";
+    emptyMessage.textContent =
+      "No saved words yet. Search for a word and save it for later practice.";
+
+    savedWordsList.append(emptyMessage);
+
+    return;
+  }
+
+  savedWords.forEach((savedWord) => {
+    const card = document.createElement("article");
+    card.className = "saved-word-card";
+
+    const title = document.createElement("h3");
+    title.textContent = savedWord.word;
+
+    const meta = document.createElement("p");
+    meta.className = "saved-word-meta";
+    meta.textContent =
+      `${savedWord.partOfSpeech} · ${savedWord.phonetic}`;
+
+    const definition = document.createElement("p");
+    definition.textContent = savedWord.definition;
+
+    const example = document.createElement("p");
+    example.className = "saved-word-example";
+    example.textContent = `Example: ${savedWord.example}`;
+
+    const removeButton = document.createElement("button");
+    removeButton.className = "remove-saved-button";
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+
+    removeButton.addEventListener("click", () => {
+      removeSavedWord(savedWord.word);
+      renderSavedWords();
+    });
+
+    card.append(
+      title,
+      meta,
+      definition,
+      example,
+      removeButton,
+    );
+
+    savedWordsList.append(card);
+  });
+}
+
+renderSavedWords();
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -255,6 +330,15 @@ searchForm.addEventListener("submit", async (event) => {
           >
             Listen
           </button>
+
+          <button
+  class="save-word-button"
+  id="save-word-button"
+  type="button"
+>
+  Save Word
+</button>
+
         </div>
       </div>
 
@@ -314,6 +398,25 @@ searchForm.addEventListener("submit", async (event) => {
       relatedWords.length > 0
         ? relatedWords.join(", ")
         : "Related words not available";
+
+    const saveWordButton =
+      document.querySelector("#save-word-button");
+
+    if (isWordSaved(wordInfo.word)) {
+      saveWordButton.disabled = true;
+      saveWordButton.textContent = "Saved";
+    }
+
+    saveWordButton.addEventListener("click", () => {
+      const wasSaved = saveWord(wordInfo);
+
+      if (wasSaved) {
+        saveWordButton.disabled = true;
+        saveWordButton.textContent = "Saved";
+
+        renderSavedWords();
+      }
+    });
 
     const audioButton =
       document.querySelector("#play-audio-button");
