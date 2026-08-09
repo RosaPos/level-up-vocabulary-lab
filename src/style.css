@@ -734,7 +734,7 @@ main {
     align-self: flex-start;
   }
 
-    .word-result-meta {
+  .word-result-meta {
     justify-content: flex-start;
   }
 
@@ -755,5 +755,98 @@ main {
     transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+  }
+}
+
+.saved-words-list {
+  margin-top: 24px;
+  display: grid;
+  gap: 16px;
+}
+
+.saved-word-card {
+  padding: 22px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-small);
+  box-shadow: var(--shadow-small);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.saved-word-card:hover {
+  transform: translateY(-2px);
+}
+
+.saved-word-card h3 {
+  margin: 0 0 8px;
+  color: var(--color-purple-dark);
+  font-size: 1.35rem;
+  text-transform: capitalize;
+}
+
+.saved-word-meta {
+  margin: 0 0 12px;
+  color: var(--color-purple);
+  font-weight: 700;
+}
+
+.saved-word-example {
+  color: var(--color-text-soft);
+  font-style: italic;
+}
+
+.saved-empty {
+  margin: 0;
+  padding: 18px;
+  color: var(--color-text-soft);
+  background: var(--color-purple-light);
+  border-radius: var(--radius-small);
+}
+
+.save-word-button,
+.remove-saved-button {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.save-word-button {
+  color: var(--color-purple-dark);
+  background: var(--color-yellow);
+}
+
+.remove-saved-button {
+  margin-top: 8px;
+  color: var(--color-surface);
+  background: var(--color-purple);
+}
+
+.save-word-button:hover:not(:disabled),
+.remove-saved-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(57, 32, 95, 0.18);
+}
+
+.save-word-button:disabled {
+  color: var(--color-text-soft);
+  background: var(--color-purple-light);
+  cursor: not-allowed;
+}
+
+@media (min-width: 720px) {
+  .saved-words-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .saved-empty {
+    grid-column: 1 / -1;
   }
 }
