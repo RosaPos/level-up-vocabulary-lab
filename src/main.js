@@ -7,19 +7,23 @@ import {
   removeSavedWord,
   isWordSaved,
 } from "./savedWordsStorage.js";
+import levelUpLogo from "./assets/level-up-logo.png";
 
 const app = document.querySelector("#app");
 
 app.innerHTML = `
-  <header class="site-header">
-    <a class="brand" href="./" aria-label="Level Up Vocabulary Lab home">
-      <span class="brand-mark" aria-hidden="true">LU</span>
-
-      <span class="brand-text">
-        <strong>Level Up</strong>
-        <small>Vocabulary Lab</small>
-      </span>
-    </a>
+  <header class="site-header" id="top">
+    <a href="#top" class="site-brand">
+  <img
+    src="${levelUpLogo}"
+    alt="Level Up English Institute logo"
+    class="site-brand-logo"
+  />
+  <div class="site-brand-text">
+    <span class="site-brand-title">Level Up</span>
+    <span class="site-brand-subtitle">Vocabulary Lab</span>
+  </div>
+</a>
 
     <nav class="main-navigation" aria-label="Primary navigation">
       <a href="#search">Search</a>
@@ -142,7 +146,34 @@ app.innerHTML = `
 
     <div  class="saved-words-list"  id="saved-words-list"  aria-live="polite">
     </div>
-  </main>
+
+    <div
+  class="saved-words-list"
+  id="saved-words-list"
+  aria-live="polite"
+>
+</div>
+
+<section class="level-up-cta">
+  <p class="eyebrow">Ready to start?</p>
+
+  <h2>Study English online with Level Up</h2>
+
+  <p>
+    Keep growing your vocabulary and join our live online English classes for
+    children, teens, university students, and adults.
+  </p>
+
+  <a
+    class="level-up-cta-button"
+    href="https://rosapos.github.io/wdd231/project/index.html"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Visit Level Up English Institute
+  </a>
+</section>
+</main>
 
   <footer class="site-footer">
   <p>
@@ -332,12 +363,12 @@ searchForm.addEventListener("submit", async (event) => {
           </button>
 
           <button
-  class="save-word-button"
-  id="save-word-button"
-  type="button"
->
-  Save Word
-</button>
+            class="save-word-button"
+            id="save-word-button"
+            type="button"
+          >
+            Save Word
+          </button>
 
         </div>
       </div>
@@ -448,12 +479,20 @@ searchForm.addEventListener("submit", async (event) => {
         } catch (audioError) {
           console.warn("Audio unavailable:", audioError);
 
-          audioButton.textContent = "Audio unavailable";
+          audioButton.textContent = "No audio";
+          audioButton.setAttribute(
+            "aria-label",
+            "Audio unavailable for this word",
+          );
         }
       });
     } else {
       audioButton.disabled = true;
-      audioButton.textContent = "Audio unavailable";
+      audioButton.textContent = "No audio";
+      audioButton.setAttribute(
+        "aria-label",
+        "Audio unavailable for this word",
+      );
     }
 
     console.log("Dictionary API response:", data);
