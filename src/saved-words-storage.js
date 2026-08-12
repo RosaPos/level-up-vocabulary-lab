@@ -11,9 +11,7 @@ export function getSavedWords() {
     const savedWords = JSON.parse(savedWordsJson);
 
     return Array.isArray(savedWords) ? savedWords : [];
-  } catch (error) {
-    console.warn("Could not read saved words:", error);
-
+  } catch {
     return [];
   }
 }
