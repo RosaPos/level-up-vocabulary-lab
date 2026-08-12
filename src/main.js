@@ -144,15 +144,12 @@ app.innerHTML = `
       <span class="saved-count" id="saved-count">0 words saved</span>
     </section>
 
-    <div  class="saved-words-list"  id="saved-words-list"  aria-live="polite">
-    </div>
-
     <div
-  class="saved-words-list"
-  id="saved-words-list"
-  aria-live="polite"
->
-</div>
+      class="saved-words-list"
+      id="saved-words-list"
+      aria-live="polite"
+    >
+    </div>
 
 <section class="level-up-cta">
   <p class="eyebrow">Ready to start?</p>
