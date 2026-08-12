@@ -1,13 +1,13 @@
 import "./style.css";
-import { getWordData } from "./dictionaryApi.js";
-import { getRelatedWords } from "./datamuseApi.js";
+import { getWordData } from "./dictionary-api.js";
+import { getRelatedWords } from "./datamuse-api.js";
 import {
   getSavedWords,
   saveWord,
   removeSavedWord,
   isWordSaved,
-} from "./savedWordsStorage.js";
-import levelUpLogo from "./assets/level-up-logo.png";
+} from "./saved-words-storage.js";
+import levelUpLogo from "./assets/level-up-logo.webp";
 
 const app = document.querySelector("#app");
 
@@ -144,15 +144,12 @@ app.innerHTML = `
       <span class="saved-count" id="saved-count">0 words saved</span>
     </section>
 
-    <div  class="saved-words-list"  id="saved-words-list"  aria-live="polite">
-    </div>
-
     <div
-  class="saved-words-list"
-  id="saved-words-list"
-  aria-live="polite"
->
-</div>
+      class="saved-words-list"
+      id="saved-words-list"
+      aria-live="polite"
+    >
+    </div>
 
 <section class="level-up-cta">
   <p class="eyebrow">Ready to start?</p>
@@ -338,8 +335,8 @@ searchForm.addEventListener("submit", async (event) => {
             relatedWord.toLowerCase() !== wordInfo.word.toLowerCase(),
         )
         .slice(0, 8);
-    } catch (datamuseError) {
-      console.warn("Datamuse API error:", datamuseError);
+    } catch {
+      relatedWords = [];
     }
 
     resultsSection.innerHTML = `
@@ -476,9 +473,7 @@ searchForm.addEventListener("submit", async (event) => {
             },
             { once: true },
           );
-        } catch (audioError) {
-          console.warn("Audio unavailable:", audioError);
-
+        } catch {
           audioButton.textContent = "No audio";
           audioButton.setAttribute(
             "aria-label",
@@ -495,11 +490,7 @@ searchForm.addEventListener("submit", async (event) => {
       );
     }
 
-    console.log("Dictionary API response:", data);
-    console.log("Datamuse related words:", relatedWords);
-  } catch (error) {
-    console.error("Dictionary API error:", error);
-
+  } catch {
     resultsSection.innerHTML = `
       <div class="empty-result">
         <span class="result-icon" aria-hidden="true">!</span>
